@@ -23,10 +23,10 @@ Software developers, AI Engineers, DevOps Engineers, System Administrators, and 
     docker images
 
     # Pull an image from Docker Hub
-    docker pull <image_name>
+    docker pull nginx
 
     # Run a container from an image
-    docker run -d --name my-container <image_name>
+    docker run -d --name my-container nginx
 
     # List all containers
     docker ps
@@ -40,6 +40,9 @@ Software developers, AI Engineers, DevOps Engineers, System Administrators, and 
 
     # Remove an image
     docker rmi <image_name>
+
+    # Run docker image and interactively enter the terminal, remove container after exit
+    docker run --rm -it nginx /bin/bash
     ```
 
     * **Best Practice:** Familiarize yourself with the Docker CLI to efficiently manage your Docker environment and streamline your development workflow.
@@ -105,39 +108,7 @@ Software developers, AI Engineers, DevOps Engineers, System Administrators, and 
 
     *   **Real-World Example:** By examining an image, we can use the `docker history` command to identify which layers occupy how much space and which files have been modified. This allows us to eliminate unnecessary files or merge layers to optimize image size.
 
-    ```bash
-    docker history mongo
-    ```
-
-    Example output:
-    ```plaintext
-    IMAGE          CREATED        CREATED BY                                      SIZE      COMMENT
-    72576a3db032   5 months ago   CMD ["mongod"]                                  0B        buildkit.dockerfile.v0
-    <missing>      5 months ago   EXPOSE map[27017/tcp:{}]                        0B        buildkit.dockerfile.v0
-    <missing>      5 months ago   ENTRYPOINT ["docker-entrypoint.sh"]             0B        buildkit.dockerfile.v0
-    <missing>      5 months ago   COPY docker-entrypoint.sh /usr/local/bin/ # …   14.2kB    buildkit.dockerfile.v0
-    <missing>      5 months ago   ENV HOME=/data/db                               0B        buildkit.dockerfile.v0
-    <missing>      5 months ago   VOLUME [/data/db /data/configdb]                0B        buildkit.dockerfile.v0
-    <missing>      5 months ago   RUN |2 MONGO_PACKAGE=mongodb-org MONGO_REPO=…   769MB     buildkit.dockerfile.v0
-    <missing>      5 months ago   ENV MONGO_VERSION=8.0.0                         0B        buildkit.dockerfile.v0
-    <missing>      5 months ago   RUN |2 MONGO_PACKAGE=mongodb-org MONGO_REPO=…   116B      buildkit.dockerfile.v0
-    <missing>      5 months ago   ENV MONGO_MAJOR=8.0                             0B        buildkit.dockerfile.v0
-    <missing>      5 months ago   ENV MONGO_PACKAGE=mongodb-org MONGO_REPO=rep…   0B        buildkit.dockerfile.v0
-    <missing>      5 months ago   ARG MONGO_REPO=repo.mongodb.org                 0B        buildkit.dockerfile.v0
-    <missing>      5 months ago   ARG MONGO_PACKAGE=mongodb-org                   0B        buildkit.dockerfile.v0
-    <missing>      5 months ago   RUN /bin/sh -c mkdir /docker-entrypoint-init…   0B        buildkit.dockerfile.v0
-    <missing>      5 months ago   RUN /bin/sh -c set -eux;   savedAptMark="$(a…   3.02MB    buildkit.dockerfile.v0
-    <missing>      5 months ago   ENV JSYAML_VERSION=3.13.1                       0B        buildkit.dockerfile.v0
-    <missing>      5 months ago   ENV GOSU_VERSION=1.17                           0B        buildkit.dockerfile.v0
-    <missing>      5 months ago   RUN /bin/sh -c set -eux;  apt-get update;  a…   5.13MB    buildkit.dockerfile.v0
-    <missing>      5 months ago   RUN /bin/sh -c set -eux;  groupadd --gid 999…   4.73kB    buildkit.dockerfile.v0
-    <missing>      5 months ago   /bin/sh -c #(nop)  CMD ["/bin/bash"]            0B        
-    <missing>      5 months ago   /bin/sh -c #(nop) ADD file:6f881131af38dde06…   78.1MB    
-    <missing>      5 months ago   /bin/sh -c #(nop)  LABEL org.opencontainers.…   0B        
-    <missing>      5 months ago   /bin/sh -c #(nop)  LABEL org.opencontainers.…   0B        
-    <missing>      5 months ago   /bin/sh -c #(nop)  ARG LAUNCHPAD_BUILD_ARCH     0B        
-    <missing>      5 months ago   /bin/sh -c #(nop)  ARG RELEASE                  0B        
-    ```
+    ![](./images/docker-history.png)
 
     **Interpreting the Output:**
     - Each line represents a layer in the Docker image.
@@ -160,6 +131,9 @@ Software developers, AI Engineers, DevOps Engineers, System Administrators, and 
     *   **Real-World Example:** Employing tools like Clair or Anchore Engine, we can scan our images to pinpoint security vulnerabilities and implement necessary precautions.
 
     *   **Best Practice:** Regularly scan your images to detect security vulnerabilities early and apply the latest security patches.
+
+    * **Bonus:** [trivy](https://github.com/aquasecurity/trivy)
+    ![](./images/trivy.png)
 
 ---
 **1. Advanced Container Management:**
@@ -278,7 +252,84 @@ Software developers, AI Engineers, DevOps Engineers, System Administrators, and 
 
     *   **Real-World Example:** We can easily bring up and manage an application with a microservices architecture using Docker Compose.
 
+    ```yaml
+    services:
+      app:
+        restart: always
+        container_name: app
+        ports:
+          - "8000:8000"
+        depends_on:
+          - mongodb
+        environment:
+          MONGODB_URI: mongodb://root:root123@mongodb:27017/app
+        volumes:
+          - .:/app
+      mongodb:
+        restart: always
+        container_name: mongodb
+        image: mongo:latest
+        ports:
+          - "27017:27017"
+        volumes:
+          - mongodb_data:/data/db
+        environment:
+          - MONGO_INITDB_DATABASE: app
+      mongo-express:
+        image: mongo-express
+        container_name: mongo-express
+        restart: always
+        ports:
+          - "8081:8081"
+        environment:
+          ME_CONFIG_MONGODB_ADMINUSERNAME: root
+          ME_CONFIG_MONGODB_ADMINPASSWORD: root123
+          ME_CONFIG_MONGODB_URL: mongodb://root:root123@mongo:27017/
+          ME_CONFIG_BASICAUTH_ENABLED: true
+          ME_CONFIG_BASICAUTH_USERNAME: admin
+          ME_CONFIG_BASICAUTH_PASSWORD: admin
+
+    volumes:
+      mongodb_data:
+        driver: local
+    ```
+
     *   **Best Practice:** Using Docker Compose, we can easily define and manage the different services and dependencies of our application.
+
+*   **Two different docker compose app connect each other:** We'll demonstrate how to connect two different Docker Compose applications using `host.docker.internal` to enable communication between them.
+
+    *   **Real-World Example:** Suppose we have two separate Docker Compose applications, one for a web application and another for a database. We can connect these applications by using `host.docker.internal` as the hostname.
+
+    ```yaml
+    # docker-compose.web.yml
+    version: '3.9'
+    services:
+      web:
+        image: nginx:alpine
+        ports:
+          - '80:80'
+        environment:
+          DB_HOST: host.docker.internal
+    ```
+
+    ```yaml
+    # docker-compose.db.yml
+    version: '3.9'
+    services:
+      db:
+        image: postgres:14-alpine
+        environment:
+          POSTGRES_USER: myuser
+          POSTGRES_PASSWORD: mypassword
+          POSTGRES_DB: mydb
+    ```
+
+    *   **Best Practice:** Use `host.docker.internal` to enable communication between different Docker Compose applications running on the same host.
+
+    ```bash
+    docker-compose -f docker-compose.web.yml up -d
+    docker-compose -f docker-compose.db.yml up -d
+    ```
 
 ---
 **1. Docker and CI/CD Integration:**
@@ -290,3 +341,59 @@ Software developers, AI Engineers, DevOps Engineers, System Administrators, and 
     *   **Best Practice:** By using CI/CD pipelines, we ensure that our application is continuously integrated and tested, automate the deployment process, and detect errors early.
 
 This comprehensive content, enriched with real-world examples and best practices, should serve as a valuable resource for your advanced Docker workshop. Remember to adapt the content and examples to best suit your audience's specific needs and interests.
+
+---
+**1. Kubernetes short introduction for this workshop**
+
+* **Introduction to Kubernetes:** Kubernetes is an open-source container orchestration platform designed to automate the deployment, scaling, and management of containerized applications.
+
+* **Key Concepts:**
+  * **Cluster:** A set of nodes (machines) that run containerized applications managed by Kubernetes.
+  * **Node:** A single machine in a Kubernetes cluster, which can be a physical or virtual machine.
+  * **Pod:** The smallest and simplest Kubernetes object, representing a single instance of a running process in a cluster. Pods can contain one or more containers.
+  * **Service:** An abstraction that defines a logical set of Pods and a policy to access them, often used to expose applications running on Pods to the outside world.
+  * **Deployment:** A higher-level abstraction that manages the deployment and scaling of a set of Pods.
+  * **Namespace:** A way to divide cluster resources between multiple users or teams.
+
+* **Basic Commands:**
+  * `kubectl get nodes`: List all nodes in the cluster.
+  * `kubectl get pods`: List all Pods in the default namespace.
+  * `kubectl create -f <file.yaml>`: Create resources defined in a YAML file.
+  * `kubectl apply -f <file.yaml>`: Apply changes defined in a YAML file to existing resources.
+  * `kubectl delete pod <pod_name>`: Delete a specific Pod.
+
+* **Real-World Example:** Deploying a simple web application using Kubernetes.
+  1. Create a Deployment YAML file (`deployment.yaml`):
+    ```yaml
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: webapp-deployment
+    spec:
+      replicas: 3
+      selector:
+        matchLabels:
+          app: webapp
+      template:
+        metadata:
+          labels:
+            app: webapp
+        spec:
+          containers:
+          - name: webapp
+            image: nginx:alpine
+            ports:
+            - containerPort: 80
+    ```
+  2. Apply the Deployment:
+    ```bash
+    kubectl apply -f deployment.yaml
+    ```
+  3. Expose the Deployment as a Service:
+    ```bash
+    kubectl expose deployment webapp-deployment --type=LoadBalancer --port=80
+    ```
+
+* **Best Practice:** Use Kubernetes to manage containerized applications for better scalability, reliability, and ease of deployment.
+
+---
