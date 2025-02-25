@@ -106,10 +106,54 @@ Software developers, AI Engineers, DevOps Engineers, System Administrators, and 
     *   **Real-World Example:** By examining an image, we can use the `docker history` command to identify which layers occupy how much space and which files have been modified. This allows us to eliminate unnecessary files or merge layers to optimize image size.
 
     ```bash
-    docker history <image_name>
+    docker history mongo
     ```
 
-    *   **Best Practice:** To optimize image layers, position frequently modified files in the lower layers and less frequently modified files in the upper layers.
+    Example output:
+    ```plaintext
+    IMAGE          CREATED        CREATED BY                                      SIZE      COMMENT
+    72576a3db032   5 months ago   CMD ["mongod"]                                  0B        buildkit.dockerfile.v0
+    <missing>      5 months ago   EXPOSE map[27017/tcp:{}]                        0B        buildkit.dockerfile.v0
+    <missing>      5 months ago   ENTRYPOINT ["docker-entrypoint.sh"]             0B        buildkit.dockerfile.v0
+    <missing>      5 months ago   COPY docker-entrypoint.sh /usr/local/bin/ # …   14.2kB    buildkit.dockerfile.v0
+    <missing>      5 months ago   ENV HOME=/data/db                               0B        buildkit.dockerfile.v0
+    <missing>      5 months ago   VOLUME [/data/db /data/configdb]                0B        buildkit.dockerfile.v0
+    <missing>      5 months ago   RUN |2 MONGO_PACKAGE=mongodb-org MONGO_REPO=…   769MB     buildkit.dockerfile.v0
+    <missing>      5 months ago   ENV MONGO_VERSION=8.0.0                         0B        buildkit.dockerfile.v0
+    <missing>      5 months ago   RUN |2 MONGO_PACKAGE=mongodb-org MONGO_REPO=…   116B      buildkit.dockerfile.v0
+    <missing>      5 months ago   ENV MONGO_MAJOR=8.0                             0B        buildkit.dockerfile.v0
+    <missing>      5 months ago   ENV MONGO_PACKAGE=mongodb-org MONGO_REPO=rep…   0B        buildkit.dockerfile.v0
+    <missing>      5 months ago   ARG MONGO_REPO=repo.mongodb.org                 0B        buildkit.dockerfile.v0
+    <missing>      5 months ago   ARG MONGO_PACKAGE=mongodb-org                   0B        buildkit.dockerfile.v0
+    <missing>      5 months ago   RUN /bin/sh -c mkdir /docker-entrypoint-init…   0B        buildkit.dockerfile.v0
+    <missing>      5 months ago   RUN /bin/sh -c set -eux;   savedAptMark="$(a…   3.02MB    buildkit.dockerfile.v0
+    <missing>      5 months ago   ENV JSYAML_VERSION=3.13.1                       0B        buildkit.dockerfile.v0
+    <missing>      5 months ago   ENV GOSU_VERSION=1.17                           0B        buildkit.dockerfile.v0
+    <missing>      5 months ago   RUN /bin/sh -c set -eux;  apt-get update;  a…   5.13MB    buildkit.dockerfile.v0
+    <missing>      5 months ago   RUN /bin/sh -c set -eux;  groupadd --gid 999…   4.73kB    buildkit.dockerfile.v0
+    <missing>      5 months ago   /bin/sh -c #(nop)  CMD ["/bin/bash"]            0B        
+    <missing>      5 months ago   /bin/sh -c #(nop) ADD file:6f881131af38dde06…   78.1MB    
+    <missing>      5 months ago   /bin/sh -c #(nop)  LABEL org.opencontainers.…   0B        
+    <missing>      5 months ago   /bin/sh -c #(nop)  LABEL org.opencontainers.…   0B        
+    <missing>      5 months ago   /bin/sh -c #(nop)  ARG LAUNCHPAD_BUILD_ARCH     0B        
+    <missing>      5 months ago   /bin/sh -c #(nop)  ARG RELEASE                  0B        
+    ```
+
+    **Interpreting the Output:**
+    - Each line represents a layer in the Docker image.
+    - The `CREATED BY` column shows the command that created the layer.
+    - The `SIZE` column indicates the size of each layer.
+
+    For example:
+    - The largest layer (769MB) was created by the `RUN` command that installs MongoDB packages. This is a key area to focus on for optimization.
+    - Layers with `0B` size indicate metadata changes or commands that do not add significant data (e.g., `CMD`, `EXPOSE`, `ENV`).
+
+    **Optimization Tips:**
+    - **Combine RUN Commands:** Merge multiple `RUN` commands into a single command to reduce the number of layers.
+    - **Order of Commands:** Place frequently changing commands (e.g., `COPY` for application code) towards the end of the Dockerfile to leverage caching.
+    - **Remove Unnecessary Files:** Clean up temporary files and package caches within the same `RUN` command to avoid adding extra layers.
+
+    *   **Best Practice:** To optimize image layers, position frequently modified files in the lower layers and less frequently modified files in the upper layers. For example, in the MongoDB image, the largest layer is created by the `RUN` command that installs MongoDB packages, which occupies 769MB. By identifying such large layers, we can focus on optimizing or merging them to reduce the overall image size.
 
 *   **Image security:** We'll focus on image scanning tools and methods to address security vulnerabilities.
 
