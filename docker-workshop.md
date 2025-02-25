@@ -1,5 +1,7 @@
 ## Advanced Docker Workshop: Steer Your Code Ship!
 
+Docker Crash Course
+
 **Introduction:**
 
 This training will provide an advanced hands-on study on topics such as known docker commands, docker-cli, dockerfile, image, container, docker compose. 
@@ -14,7 +16,7 @@ Software developers, AI Engineers, DevOps Engineers, System Administrators, and 
 
 * **Docker CLI Basics:** We'll cover the essential Docker CLI commands that every developer should know.
 
-    * **Real-World Example:** Using the Docker CLI, we can manage images, containers, networks, and volumes.
+    * **Examples:** Using the Docker CLI, we can manage images, containers, networks, and volumes.
 
     ```bash
     # List all Docker images
@@ -26,10 +28,9 @@ Software developers, AI Engineers, DevOps Engineers, System Administrators, and 
     # Run a container from an image
     docker run -d --name my-container <image_name>
 
-    # List all running containers
+    # List all containers
     docker ps
-
-    docker ps -a 
+    docker ps -a
     
     # Stop a running container
     docker stop my-container
@@ -43,16 +44,19 @@ Software developers, AI Engineers, DevOps Engineers, System Administrators, and 
 
     * **Best Practice:** Familiarize yourself with the Docker CLI to efficiently manage your Docker environment and streamline your development workflow.
 
+    * **Bonus**: [lazydocker](https://github.com/jesseduffield/lazydocker)
+    ![lazydocker](./images/lazydocker.png)
+
 
 ---
 **1. Advanced Image Management:**
 
 *   **Simple Dockerfile:** We'll dissect a Dockerfile to understand its structure and the commands used to build images.
 
-    *   **Real-World Example:** When building a Python application image, we can use a Dockerfile to define the base image, copy the application code, install dependencies, and specify the command to run the application.
+    *   **Example:** When building a Python application image, we can use a Dockerfile to define the base image, copy the application code, install dependencies, and specify the command to run the application.
 
     
-    image:
+    Dockerfile:
     ```dockerfile
     FROM python:3.9-slim
     WORKDIR /app
@@ -61,12 +65,11 @@ Software developers, AI Engineers, DevOps Engineers, System Administrators, and 
     CMD ["python", "app.py"]
     ```
 
-
     crash commands :)
     ```bash
-    $build: docker build -t my-python-app .
+    $build: docker build -t app .
     
-    $run: docker run my-python-app
+    $run: docker run app
 
     $list: docker ps
 
@@ -79,20 +82,21 @@ Software developers, AI Engineers, DevOps Engineers, System Administrators, and 
 ---
 *   **Multi-stage builds:** We'll deeply explore multi-stage build techniques to minimize image size and craft more optimized images.
 
-    *   **Real-World Example:** When building a React application image, we'll use a Node.js image in the first stage to handle the application's build process. In the second stage, we'll employ an Nginx image and copy only the built files. This significantly reduces the image size.
+    *   **Real-World Example:** When building a Java application image, we'll use a Maven image in the first stage to handle the application's build process. In the second stage, we'll employ a smaller JRE image and copy only the necessary files. This significantly reduces the image size.
 
     ```dockerfile
     # Stage 1: Build
-    FROM node:16-alpine AS build
+    FROM maven:3.8.4-openjdk-11 AS build
     WORKDIR /app
-    COPY package*.json ./
-    RUN npm install
-    COPY . .
-    RUN npm run build
+    COPY pom.xml .
+    COPY src ./src
+    RUN mvn clean package
 
     # Stage 2: Production
-    FROM nginx:alpine
-    COPY --from=build /app/build /usr/share/nginx/html
+    FROM openjdk:11-jre-slim
+    WORKDIR /app
+    COPY --from=build /app/target/myapp.jar /app/myapp.jar
+    CMD ["java", "-jar", "/app/myapp.jar"]
     ```
 
     *   **Best Practice:** When using multi-stage builds, consider employing different base images for each stage. For instance, you might use a larger image for the build stage and a smaller one for the final image.
