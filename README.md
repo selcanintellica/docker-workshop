@@ -48,6 +48,7 @@ Software developers, AI Engineers, DevOps Engineers, System Administrators, and 
     * **Best Practice:** Familiarize yourself with the Docker CLI to efficiently manage your Docker environment and streamline your development workflow.
 
     * **Bonus**: [lazydocker](https://github.com/jesseduffield/lazydocker)
+
     ![lazydocker](./images/lazydocker.png)
 
 
@@ -133,6 +134,7 @@ Software developers, AI Engineers, DevOps Engineers, System Administrators, and 
     *   **Best Practice:** Regularly scan your images to detect security vulnerabilities early and apply the latest security patches.
 
     * **Bonus:** [trivy](https://github.com/aquasecurity/trivy)
+
     ![](./images/trivy.png)
 
 ---
@@ -218,6 +220,10 @@ Software developers, AI Engineers, DevOps Engineers, System Administrators, and 
     *   **Real-World Example:** By regularly backing up the data of a database container, we can restore the data in case of data loss.
 
     *   **Best Practice:** Develop data backup and restore strategies to mitigate the risk of data loss and ensure business continuity.
+
+---
+**1. Docker Logs and stats:**
+
 
 ---
 **1. Docker Compose and Advanced Usage:**
