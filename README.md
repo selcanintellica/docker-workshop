@@ -223,7 +223,23 @@ Software developers, AI Engineers, DevOps Engineers, System Administrators, and 
 
 ---
 **1. Docker Logs and stats:**
+*   **Docker Logs:** We'll explore how to access and manage container logs using Docker commands.
 
+
+    ```bash
+    # Display logs of a running container
+    docker logs <container_id>
+    ```
+
+*   **Docker Stats:** We'll demonstrate how to monitor container resource usage and performance metrics using Docker stats.
+
+    ```bash
+    # Display real-time container resource usage
+    docker stats <container_id>
+    ```
+
+    *   **Best Practice:** Regularly monitor container logs and stats to identify performance issues, troubleshoot errors, and optimize resource utilization.
+    *   **Real-World Example:** By monitoring container logs and stats, we can detect abnormal behavior, identify bottlenecks, and optimize resource allocation.
 
 ---
 **1. Docker Compose and Advanced Usage:**
