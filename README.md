@@ -39,7 +39,7 @@ Software developers, AI Engineers, DevOps Engineers, System Administrators, and 
     docker rm my-container
 
     # Remove an image
-    docker rmi <image_name>
+    docker rmi nginx
 
     # Run docker image and interactively enter the terminal, remove container after exit
     docker run --rm -it nginx /bin/bash
@@ -71,7 +71,7 @@ Software developers, AI Engineers, DevOps Engineers, System Administrators, and 
 
     crash commands :)
     ```bash
-    $build: docker build -t app .
+    $build: docker build -t app:v0.0.1 .
     
     $run: docker run app
 

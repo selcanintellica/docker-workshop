@@ -13,4 +13,5 @@ Summary
 10. Docker Logs and stats. 
 11. Docker Compose and Advanced Usage. 
 12. Docker and CI/CD Integration. 
-13. Kubernetes short introduction for this workshop. 14. Docker bestpractice with realworld example
+13. Kubernetes short introduction for this workshop. 
+14. Docker bestpractice with realworld example
